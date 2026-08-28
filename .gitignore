@@ -1,0 +1,53 @@
+﻿## ====================================================================
+## Visual Studio / JetBrains Rider / VS Code
+## ====================================================================
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+.vscode/
+.idea/
+
+## ====================================================================
+## Build Outputs & Intermediate Files
+## ====================================================================
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+*.pdb
+*.cache
+*.FileListAbsolute.txt
+*.GeneratedMSBuildEditorConfig.editorconfig
+
+## ====================================================================
+## Generated Packages & Add-in Manifests (Local to machine)
+## ====================================================================
+TeamPackage/
+RevitVersion.txt
+*.deps.json
+*.runtimeconfig.json
+
+## ====================================================================
+## Revit Runtime & Log Files
+## ====================================================================
+*.log
+*.slog
+*.rfa.backup*
+*.rvt.backup*
+*.html
+*.journal.*.txt
+
+## ====================================================================
+## OS & Environment Specific
+## ====================================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.env
+.env.*
+!.env.example

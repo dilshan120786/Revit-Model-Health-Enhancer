@@ -1,0 +1,136 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>RevitHealthEnhancer</AssemblyName>
+    <RootNamespace>RevitHealthEnhancer</RootNamespace>
+    <RevitVersion Condition="'$(RevitVersion)' == ''">2024</RevitVersion>
+    <RevitTargetFramework Condition="'$(RevitTargetFramework)' == '' and '$(RevitVersion)' == '2025'">net8.0-windows</RevitTargetFramework>
+    <RevitTargetFramework Condition="'$(RevitTargetFramework)' == '' and '$(RevitVersion)' == '2026'">net8.0-windows</RevitTargetFramework>
+    <RevitTargetFramework Condition="'$(RevitTargetFramework)' == ''">net48</RevitTargetFramework>
+    <TargetFramework>$(RevitTargetFramework)</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin\$(Configuration)\Revit$(RevitVersion)\</OutputPath>
+    <RevitInstallDir Condition="'$(RevitInstallDir)' == ''">C:\Program Files\Autodesk\Revit $(RevitVersion)\</RevitInstallDir>
+    <RevitAddinsDir>$(APPDATA)\Autodesk\Revit\Addins\$(RevitVersion)</RevitAddinsDir>
+    <RevitAddinInstallDir>$(RevitAddinsDir)\$(AssemblyName)</RevitAddinInstallDir>
+    <TeamPackageDir>$(MSBuildProjectDirectory)\..\..\TeamPackage\Revit$(RevitVersion)\$(AssemblyName)</TeamPackageDir>
+    <InstallAddinAfterBuild Condition="'$(InstallAddinAfterBuild)' == ''">false</InstallAddinAfterBuild>
+    <CreateTeamPackageAfterBuild Condition="'$(CreateTeamPackageAfterBuild)' == ''">false</CreateTeamPackageAfterBuild>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(RevitInstallDir)Revit.exe</StartProgram>
+    <StartWorkingDirectory>$(RevitInstallDir)</StartWorkingDirectory>
+    
+    <!-- Package / Assembly Metadata -->
+    <Authors>Dilshan Khan</Authors>
+    <Company>Dilshan Khan</Company>
+    <Product>Revit Model Health Enhancer</Product>
+    <Description>Automated Revit model health checks, element pinning, workset management, unused asset cleanup, warning resolution, and audit reporting.</Description>
+    <Copyright>Copyright © Dilshan Khan</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RevitVersion)' == '2024'">
+    <DefineConstants>$(DefineConstants);REVIT2024_OR_GREATER</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RevitVersion)' == '2025'">
+    <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);REVIT2024_OR_GREATER;REVIT2025_OR_GREATER</DefineConstants>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RevitVersion)' == '2026'">
+    <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);REVIT2024_OR_GREATER;REVIT2025_OR_GREATER;REVIT2026_OR_GREATER</DefineConstants>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="PresentationFramework" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="WindowsBase" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitInstallDir)RevitAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitInstallDir)RevitAPIUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RevitHealthEnhancer.addin">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Target Name="InstallRevitAddinManifest" AfterTargets="Build" Condition="'$(InstallAddinAfterBuild)' == 'true'">
+    <MakeDir Directories="$(RevitAddinsDir)" />
+    <MakeDir Directories="$(RevitAddinInstallDir)" />
+    <ItemGroup>
+      <_AddinRuntimeFile Include="$(TargetPath)" />
+      <_AddinRuntimeFile Include="@(ReferenceCopyLocalPaths)" />
+      <_AddinRuntimeFile Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+      <_AddinRuntimeFile Include="$(TargetDir)$(TargetName).deps.json" Condition="Exists('$(TargetDir)$(TargetName).deps.json')" />
+      <_AddinRuntimeFile Include="$(TargetDir)$(TargetName).runtimeconfig.json" Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_AddinRuntimeFile)"
+      DestinationFolder="$(RevitAddinInstallDir)"
+      SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <_AddinManifestLine Include="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; standalone=&quot;no&quot;?&gt;" />
+      <_AddinManifestLine Include="&lt;RevitAddIns&gt;" />
+      <_AddinManifestLine Include="  &lt;AddIn Type=&quot;Application&quot;&gt;" />
+      <_AddinManifestLine Include="    &lt;Name&gt;$(AssemblyName)&lt;/Name&gt;" />
+      <_AddinManifestLine Include="    &lt;Assembly&gt;$(RevitAddinInstallDir)\$(TargetFileName)&lt;/Assembly&gt;" />
+      <_AddinManifestLine Include="    &lt;AddInId&gt;8f5a6245-a093-4f5b-9b8b-6579d7b7b29b&lt;/AddInId&gt;" />
+      <_AddinManifestLine Include="    &lt;FullClassName&gt;$(RootNamespace).App&lt;/FullClassName&gt;" />
+      <_AddinManifestLine Include="    &lt;VendorId&gt;DKHN&lt;/VendorId&gt;" />
+      <_AddinManifestLine Include="    &lt;VendorDescription&gt;Dilshan Khan - Revit BIM Automation&lt;/VendorDescription&gt;" />
+      <_AddinManifestLine Include="  &lt;/AddIn&gt;" />
+      <_AddinManifestLine Include="&lt;/RevitAddIns&gt;" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(RevitAddinsDir)\$(AssemblyName).addin" Lines="@(_AddinManifestLine)" Overwrite="true" Encoding="UTF-8" />
+    <Message Text="Installed Revit add-in files: $(RevitAddinInstallDir)" Importance="high" />
+    <Message Text="Installed Revit add-in manifest: $(RevitAddinsDir)\$(AssemblyName).addin" Importance="high" />
+  </Target>
+
+  <Target Name="CreateTeamPackage" AfterTargets="Build" Condition="'$(CreateTeamPackageAfterBuild)' == 'true'">
+    <MakeDir Directories="$(TeamPackageDir)" />
+    <ItemGroup>
+      <_TeamPackageFile Include="$(TargetPath)" />
+      <_TeamPackageFile Include="@(ReferenceCopyLocalPaths)" />
+      <_TeamPackageFile Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+      <_TeamPackageFile Include="$(TargetDir)$(TargetName).deps.json" Condition="Exists('$(TargetDir)$(TargetName).deps.json')" />
+      <_TeamPackageFile Include="$(TargetDir)$(TargetName).runtimeconfig.json" Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')" />
+      <_TeamPackageFile Include="$(MSBuildProjectDirectory)\..\..\installer\Install-RevitHealthEnhancer.bat" />
+      <_TeamPackageFile Include="$(MSBuildProjectDirectory)\..\..\installer\Install-RevitHealthEnhancer.ps1" />
+      <_TeamPackageFile Include="$(MSBuildProjectDirectory)\..\..\installer\Uninstall-RevitHealthEnhancer.bat" />
+      <_TeamPackageFile Include="$(MSBuildProjectDirectory)\..\..\installer\Uninstall-RevitHealthEnhancer.ps1" />
+      <_TeamPackageFile Include="$(MSBuildProjectDirectory)\..\..\installer\README-Install.md" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_TeamPackageFile)"
+      DestinationFolder="$(TeamPackageDir)"
+      SkipUnchangedFiles="true" />
+    <WriteLinesToFile
+      File="$(TeamPackageDir)\RevitVersion.txt"
+      Lines="$(RevitVersion)"
+      Overwrite="true"
+      Encoding="UTF-8" />
+    <Message Text="Created distribution package: $(TeamPackageDir)" Importance="high" />
+  </Target>
+</Project>

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>RevitHealthEnhancer</Name>
+    <Assembly>RevitHealthEnhancer\RevitHealthEnhancer.dll</Assembly>
+    <AddInId>8f5a6245-a093-4f5b-9b8b-6579d7b7b29b</AddInId>
+    <FullClassName>RevitHealthEnhancer.App</FullClassName>
+    <VendorId>DKHN</VendorId>
+    <VendorDescription>Dilshan Khan - Revit BIM Automation</VendorDescription>
+  </AddIn>
+</RevitAddIns>
